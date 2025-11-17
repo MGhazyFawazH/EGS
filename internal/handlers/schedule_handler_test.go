@@ -8,10 +8,13 @@ import (
 	"testing"
 	"time"
 
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/mongo/inmemory"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 
 	"github.com/mghazyfawazh/EGS/internal/handlers"
 	"github.com/mghazyfawazh/EGS/internal/models"
@@ -19,7 +22,10 @@ import (
 )
 
 func setupTest() (*gin.Engine, *repo.MongoRepo, *handlers.Handler) {
-	client, _ := inmemory.New()
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
+	}
 	db := client.Database("testdb")
 	coll := db.Collection("schedules")
 
@@ -104,7 +110,7 @@ func TestCreateConflict(t *testing.T) {
 }
 
 func TestGetByUUID(t *testing.T) {
-	r, repo, h := setupTest()
+	r, repo, _ := setupTest()
 
 	now := time.Now()
 	id := uuid.New().String()
@@ -138,7 +144,7 @@ func TestGetByUUID(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	r, repo, h := setupTest()
+	r, repo, _ := setupTest()
 
 	now := time.Now()
 	id := uuid.New().String()
