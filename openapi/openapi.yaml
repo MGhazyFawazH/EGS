@@ -1,0 +1,142 @@
+openapi: 3.0.1
+info:
+  title: School Schedule API
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/schedules:
+    post:
+      summary: Create schedule
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleInput'
+      responses:
+        '201': { description: Created }
+    get:
+      summary: Get all schedules
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200': { description: OK }
+  /api/schedules/{uuid}:
+    get:
+      summary: Get schedule by uuid
+      parameters:
+        - in: path
+          name: uuid
+          schema: { type: string }
+          required: true
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        '200': { description: OK }
+    put:
+      summary: Update schedule
+      parameters:
+        - in: path
+          name: uuid
+          schema: { type: string }
+          required: true
+      security: [{ ApiKeyAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleInput'
+      responses:
+        '200': { description: Updated }
+    delete:
+      summary: Delete schedule
+      parameters:
+        - in: path
+          name: uuid
+          schema: { type: string }
+          required: true
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        '200': { description: Deleted }
+  /api/schedules/student:
+    get:
+      summary: Get student schedule (by class_code + date)
+      parameters:
+        - in: query
+          name: class_code
+          schema: { type: string }
+          required: true
+        - in: query
+          name: date
+          schema: { type: string, format: date }
+          required: true
+      security: [{ ApiKeyAuth: [] }]
+      responses: { '200': { description: OK } }
+  /api/schedules/teacher:
+    get:
+      summary: Get teacher schedule (and JP)
+      parameters:
+        - in: query
+          name: teacher_nik
+          schema: { type: string }
+          required: true
+        - in: query
+          name: start_date
+          schema: { type: string, format: date }
+          required: true
+        - in: query
+          name: end_date
+          schema: { type: string, format: date }
+          required: true
+      security: [{ ApiKeyAuth: [] }]
+      responses: { '200': { description: OK } }
+  /api/schedules/import:
+    post:
+      summary: Import schedules from Excel (multipart form with file field 'file')
+      security: [{ ApiKeyAuth: [] }]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses: { '200': { description: OK } }
+  /api/schedules/export:
+    get:
+      summary: Export JP to Excel
+      parameters:
+        - in: query
+          name: start_date
+          schema: { type: string, format: date }
+          required: true
+        - in: query
+          name: end_date
+          schema: { type: string, format: date }
+          required: true
+      security: [{ ApiKeyAuth: [] }]
+      responses: { '200': { description: OK } }
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    ScheduleInput:
+      type: object
+      properties:
+        class_code: { type: string }
+        class_name: { type: string }
+        subject_code: { type: string }
+        teacher_nik: { type: string }
+        teacher_name: { type: string }
+        date: { type: string, format: date }
+        jam_ke: { type: integer }
+        time_start: { type: string }
+        time_end: { type: string }
+      required: [class_code, class_name, subject_code, teacher_nik, teacher_name, date, jam_ke, time_start, time_end]
