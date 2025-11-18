@@ -13,12 +13,13 @@ import (
 
 	_ "github.com/mghazyfawazh/EGS/docs"
 
+	"github.com/mghazyfawazh/EGS/internal/config"
 	"github.com/mghazyfawazh/EGS/internal/handlers"
 	"github.com/mghazyfawazh/EGS/internal/middleware"
 	"github.com/mghazyfawazh/EGS/internal/repo"
 
-	ginSwagger "github.com/swaggo/gin-swagger"
 	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func connectMongo(uri string) *mongo.Client {
@@ -59,13 +60,15 @@ func main() {
 
 	r := gin.Default()
 
-	// Swagger
+	// swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	// health check
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
 
+	// protected routes
 	api := r.Group("/api", middleware.APIKeyAuth())
 	{
 		s := api.Group("/schedules")
@@ -82,7 +85,9 @@ func main() {
 		}
 	}
 
-	port := os.Getenv("PORT")
+	// load config
+	cfg := config.LoadConfig()
+	port := cfg.Port
 	if port == "" {
 		port = "8080"
 	}
@@ -92,4 +97,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
